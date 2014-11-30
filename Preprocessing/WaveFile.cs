@@ -15,6 +15,7 @@ namespace OnsetDetection
         private int sampleRate;
         private int position;
         private int length;
+        private int channels;
 
         public WaveFile(string path)
         {
@@ -52,11 +53,11 @@ namespace OnsetDetection
             int audioFormat = reader.ReadUInt16();
             Debug.Assert(audioFormat == 1, "The file must be PCM encoded"); // PCM.
 
-            int channels = reader.ReadUInt16();
-            Debug.Assert(channels == 1, "There must be only one channel"); // Mono
+            channels = reader.ReadUInt16();
+            Debug.Assert(channels <= 2, "There must be no more than two channels"); // Mono or Stereo only
 
             sampleRate = reader.ReadInt32();
-            Debug.Assert(sampleRate >= 8000, "Sample rate must be above 8000"); // Sample rate
+            Debug.Assert(sampleRate == 44100, "Sample rate must be 44100");//>= 8000, "Sample rate must be above 8000"); // Sample rate
 
             int byteRate = reader.ReadInt32();
             int blockAlign = reader.ReadUInt16();
@@ -80,15 +81,38 @@ namespace OnsetDetection
             get { return length; }
         }
 
+        public int Channels
+        {
+            get { return channels; }
+        }
+
         public int Read(double[] buffer)
         {
             int samplesToRead = Math.Min(buffer.Length, length - position);
             for (int i = 0; i < samplesToRead; i++)
             {
-                buffer[i] = reader.ReadInt16() / 32767.0;
+                buffer[i] = ReadSample();
             }
             position += samplesToRead;
             return samplesToRead;
+        }
+
+        private double ReadSample()
+        {
+            if (channels == 1)
+            {
+                return reader.ReadInt16() / 32767.0;
+            }
+            else if (channels == 2)
+            {
+                double leftSample = reader.ReadInt16() / 32767.0;
+                double rightSample = reader.ReadInt16() / 32767.0;
+                return (leftSample + rightSample) / 2.0;
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
         }
 
         public void Dispose()

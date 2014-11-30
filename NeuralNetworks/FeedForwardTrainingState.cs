@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OnsetDetection
+namespace OnsetDetection.NeuralNetworks
 {
-    class FeedForwardTrainingState
+    class FeedForwardTrainingState : TrainingState
     {
         public FeedForwardTrainingState(double[] inputErrors, double[] errors)
         {
@@ -38,5 +38,11 @@ namespace OnsetDetection
         /// each of the weights between the input and this layer.
         /// </summary>
         public readonly double[,] InputWeightErrors;
+
+        public override void MultiplyError(double factor)
+        {
+            TrainingState.Multiply(BiasWeightErrors, factor);
+            TrainingState.Multiply(InputWeightErrors, factor);
+        }
     }
 }

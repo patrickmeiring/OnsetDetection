@@ -1,19 +1,20 @@
-﻿using System;
+﻿using OnsetDetection.Testing;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OnsetDetection
+namespace OnsetDetection.NeuralNetworks
 {
     class FeedForwardLayer : Layer
     {
         private readonly double[] biasWeights;
         private readonly double[,] inputWeights;
 
-        public FeedForwardLayer(int size, int inputSize)
-            : base(size, inputSize)
+        public FeedForwardLayer(NetworkConfiguration configuration, int size, int inputSize)
+            : base(configuration, size, inputSize)
         {
             this.biasWeights = new double[size];
             Randomise(biasWeights, inputSize + 1);
@@ -41,9 +42,9 @@ namespace OnsetDetection
 
             // Multiply by the derivative of the activation function to finalise
             // errors with respect to the weighted sum for the units in this layer.
-            if (state.Now.Outputs.Length != 2)
+            if (state.Now.Outputs.Length != 1)
             {
-                MultiplyByActivationDerivative(state.Now.Outputs, state.Errors);
+                MultiplyByActivationDerivative(state.Now.WeightedSums, state.Errors);
             }
 
             // Propogate the errors back to the input.
@@ -73,6 +74,16 @@ namespace OnsetDetection
         {
             Layer.ApplyWeightChanges(biasWeights, state.BiasWeightErrors, learningCoefficient);
             Layer.ApplyWeightChanges(inputWeights, state.InputWeightErrors, learningCoefficient);
+        }
+
+        public override double SumAbsoluteWeight
+        {
+            get { return Layer.SumAbsolute(inputWeights) + Layer.SumAbsolute(biasWeights); }
+        }
+
+        public override double WeightCount
+        {
+            get { return InputSize * Size + Size; }
         }
     }
 }

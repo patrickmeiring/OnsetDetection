@@ -1,20 +1,21 @@
-﻿using System;
+﻿using OnsetDetection.Testing;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OnsetDetection
+namespace OnsetDetection.NeuralNetworks
 {
     class RecurrentLayer : Layer
     {
         private readonly double[] biasWeights;
         private readonly double[,] inputWeights;
         private readonly double[,] internalWeights;
-        
-        public RecurrentLayer(int size, int inputSize) 
-            : base(size, inputSize)
+
+        public RecurrentLayer(NetworkConfiguration configuration, int size, int inputSize) 
+            : base(configuration, size, inputSize)
         {
             this.biasWeights = new double[size];
             Randomise(biasWeights, inputSize + size + 1);
@@ -49,17 +50,8 @@ namespace OnsetDetection
 
             // Multiply by the derivative of the activation function to finalise
             // errors with respect to the weighted sum of the unit for this layer.
-            MultiplyByActivationDerivative(state.Now.Outputs, state.Errors);
-
-            double averageError = state.Errors.Average(e => Math.Abs(e));
-            if (averageError > 0.3)
-            {
-                for (int i = 0; i < state.Errors.Length; i++)
-                {
-                    state.Errors[i] *= 0.1 / averageError;
-                }
-            }
-
+            MultiplyByActivationDerivative(state.Now.WeightedSums, state.Errors);
+            
             // Propogate the errors back to the input.
             Array.Clear(state.InputErrors, 0, state.InputErrors.Length);
             WeightedOutputSum(state.Errors, inputWeights, state.InputErrors);
@@ -80,6 +72,16 @@ namespace OnsetDetection
             Layer.ApplyWeightChanges(biasWeights, state.BiasWeightErrors, learningCoefficient);
             Layer.ApplyWeightChanges(inputWeights, state.InputWeightErrors, learningCoefficient);
             Layer.ApplyWeightChanges(internalWeights, state.InternalWeightErrors, learningCoefficient);
+        }
+
+        public override double SumAbsoluteWeight
+        {
+            get { return Layer.SumAbsolute(inputWeights) + Layer.SumAbsolute(internalWeights) + Layer.SumAbsolute(biasWeights); }
+        }
+
+        public override double WeightCount
+        {
+            get { return InputSize * Size + Size * Size + Size; }
         }
     }
 }

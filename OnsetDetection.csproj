@@ -51,6 +51,8 @@
     <Compile Include="Datasets\Dataset.cs" />
     <Compile Include="Datasets\TrackInfo.cs" />
     <Compile Include="Diagnostics\SampleVisualiser.cs" />
+    <Compile Include="NeuralNetworks\TrainingState.cs" />
+    <Compile Include="Paths.cs" />
     <Compile Include="Preprocessing\DiscreteFourierTransform.cs" />
     <Compile Include="NeuralNetworks\FeedForwardLayer.cs" />
     <Compile Include="NeuralNetworks\FeedForwardState.cs" />
@@ -73,6 +75,11 @@
     <Compile Include="Datasets\Frame.cs" />
     <Compile Include="Datasets\TrainingSample.cs" />
     <Compile Include="Preprocessing\WaveFile.cs" />
+    <Compile Include="Testing\NetworkConfiguration.cs" />
+    <Compile Include="Testing\NetworkEvaluator.cs" />
+    <Compile Include="Testing\NetworkScorer.cs" />
+    <Compile Include="Testing\OutputType.cs" />
+    <Compile Include="Testing\RandomType.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

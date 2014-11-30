@@ -1,35 +1,60 @@
 ﻿using OnsetDetection.Diagnostics;
+using OnsetDetection.NeuralNetworks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-
+using OnsetDetection.Testing;
 namespace OnsetDetection
 {
     class Program
     {
+        static Queue<NetworkConfiguration> tests;
+
         static void Main(string[] args)
         {
-
-            RecurrentNetwork network = new RecurrentNetwork(144, 20, 20, 20);//, 20, 20, 20);//, 20, 20, 20);
-            Dataset dataset = Dataset.Load();
-
-            RecurrentNetworkTrainer trainer = new RecurrentNetworkTrainer(network);
-
-            trainer.LearningCoefficient = 0.0001;
-            for (int i = 1; ; i++)
+            NetworkConfiguration configuration = new NetworkConfiguration()
             {
-                foreach (TrainingSample sample in dataset.Samples)
+                DetectionValue = 1.0,
+                Epochs = 100000,
+                LearningCoefficient = 0.00001,
+                Momentum = 0.9,
+                Name = "",
+                NoDetectionValue = 0.0,
+                Seed = 0,
+                WeightInitialisationMethod = RandomType.Linear,
+                WeightInitialisationSize = 1.0
+            };
+
+            NetworkEvaluator evaluator = new NetworkEvaluator();
+            evaluator.Evaluate(configuration);
+            //tests = new Queue<NetworkConfiguration>(NetworkConfiguration.Read());
+
+            //new Thread(TestConfiguration).Start();
+            //new Thread(TestConfiguration).Start();
+            //new Thread(TestConfiguration).Start();
+            //new Thread(TestConfiguration).Start();
+
+
+            Console.ReadLine();
+        }
+
+        static void TestConfiguration()
+        {
+            NetworkEvaluator evaluator = new NetworkEvaluator();
+            while (true)
+            {
+                NetworkConfiguration configuration;
+                lock (tests)
                 {
-                    trainer.Train(sample);
+                    if (tests.Count == 0) break;
+                    configuration = tests.Dequeue();
                 }
-
-
-                trainer.LearningCoefficient *= 0.9;
-                Console.WriteLine("{0}    F-Score:{1:0.0000}   Recall:{2:0.0000}   Precision:{3:0.0000}", i, trainer.FScore, trainer.Recall, trainer.Precision);
-                trainer.ResetScores();
-            } Console.ReadLine();
+                Console.WriteLine("[{0}] Starting test of {1}", DateTime.Now, configuration.Name);
+                evaluator.Evaluate(configuration);
+            }
         }
     }
 }

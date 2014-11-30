@@ -4,12 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OnsetDetection
+namespace OnsetDetection.NeuralNetworks
 {
     /// <summary>
     /// A the state of a recurrent neural network layer that also supports training via backpropogation.
     /// </summary>
-    class RecurrentTrainingState 
+    class RecurrentTrainingState : TrainingState
     {
         public RecurrentTrainingState(double[] inputErrors, double[] errors)
         {
@@ -57,5 +57,13 @@ namespace OnsetDetection
         /// the current timestep.
         /// </summary>
         public readonly double[,] InternalWeightErrors;
+
+
+        public override void MultiplyError(double factor)
+        {
+            TrainingState.Multiply(BiasWeightErrors, factor);
+            TrainingState.Multiply(InputWeightErrors, factor);
+            TrainingState.Multiply(InternalWeightErrors, factor);
+        }
     }
 }
